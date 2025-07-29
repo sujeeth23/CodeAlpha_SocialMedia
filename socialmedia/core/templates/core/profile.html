@@ -1,0 +1,116 @@
+{% extends 'core/base.html' %}
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <div>
+      <h2>{{ profile_user.first_name }} {{ profile_user.last_name }}</h2>
+      <h5 class="text-muted">@{{ profile_user.username }}</h5>
+    </div>
+
+    {% if request.user != profile_user %}
+      <form method="POST" action="{% url 'follow_toggle' profile_user.username %}">
+        {% csrf_token %}
+        {% if is_following %}
+          <button class="btn btn-danger">Unfollow</button>
+        {% else %}
+          <button class="btn btn-primary">Follow</button>
+        {% endif %}
+      </form>
+    {% endif %}
+  </div>
+
+
+  <div class="mb-4 d-flex align-items-center">
+    <img src="{{ profile.image.url }}" width="100" height="100" class="rounded-circle me-3" style="object-fit:cover;">
+    <p class="mb-0">{{ profile.bio }}</p>
+  </div>
+
+  {% if request.user == profile_user %}
+    <a href="{% url 'edit_profile' %}" class="btn btn-outline-info mb-4">Edit Profile</a>
+  {% endif %}
+
+
+  <h4 class="mt-4 mb-3">Posts</h4>
+  <div class="row g-3">
+    {% for post in posts %}
+      <div class="col-md-4">
+        <div class="position-relative border rounded overflow-hidden shadow-sm">
+          <img src="{{ post.image.url }}" class="img-fluid w-100 post-img"
+               onclick="showPostDetails('{{ post.id }}', '{{ post.image.url }}', `{{ post.caption|escapejs }}`, '{{ post.likes.count }}', '{{ post.comments.count }}')"
+               style="cursor:pointer; height: 300px; object-fit: cover;">
+
+          
+        </div>
+      </div>
+    {% empty %}
+      <p class="text-muted">No posts yet.</p>
+    {% endfor %}
+  </div>
+</div>
+
+
+<div id="postModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <img id="modalImage" src="" alt="Post Image" class="img-fluid mb-3">
+    <p><strong>Caption:</strong> <span id="modalCaption"></span></p>
+    <p><strong>Likes:</strong> <span id="modalLikes"></span></p>
+    <p><strong>Comments:</strong> <span id="modalComments"></span></p>
+  </div>
+</div>
+
+<style>
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-content {
+  background: white;
+  padding: 20px;
+  max-width: 500px;
+  width: 90%;
+  text-align: center;
+  border-radius: 10px;
+  position: relative;
+}
+.modal img {
+  max-height: 300px;
+  object-fit: cover;
+  width: 100%;
+}
+.close {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  cursor: pointer;
+}
+</style>
+
+
+<script>
+function showPostDetails(id, imageUrl, caption, likes, comments) {
+  document.getElementById('modalImage').src = imageUrl;
+  document.getElementById('modalCaption').innerText = caption;
+  document.getElementById('modalLikes').innerText = likes;
+  document.getElementById('modalComments').innerText = comments;
+  document.getElementById('postModal').style.display = 'flex';
+}
+function closeModal() {
+  document.getElementById('postModal').style.display = 'none';
+}
+</script>
+{% endblock %}

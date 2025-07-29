@@ -1,0 +1,109 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-6" id="post-container">
+      {% for post in posts %}
+        {% include 'core/partials/post_card.html' %}
+      {% endfor %}
+      <div id="loading" class="text-center my-3" style="display: none;">
+        <img src="{% static 'core/loading.gif' %}" alt="Loading..." height="50">
+      </div>
+    </div>
+
+    <div class="col-md-3 d-none d-md-block">
+      <h5>Suggestions for You</h5>
+      {% for suggestion in suggestions %}
+        {% if not suggestion.is_superuser %}
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <a href="{% url 'profile' suggestion.username %}">@{{ suggestion.username }}</a>
+            <button class="btn btn-sm btn-primary follow-btn" data-user-id="{{ suggestion.id }}">Follow</button>
+          </div>
+        {% endif %}
+      {% empty %}
+        <p>No suggestions available.</p>
+      {% endfor %}
+    </div>
+
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  let page = 2;
+  let loading = false;
+
+
+  $(window).scroll(function () {
+    if (!loading && $(window).scrollTop() + $(window).height() >= $(document).height() - 200) {
+      loading = true;
+      $('#loading').show();
+
+      $.get(`/load-posts/?page=${page}`, function (data) {
+        if (data.trim().length > 0) {
+          $("#post-container").append(data);
+          page++;
+          loading = false;
+          $('#loading').hide();
+        } else {
+          $('#loading').hide();
+        }
+      });
+    }
+  });
+
+
+  $(document).on("submit", ".like-form", function (e) {
+    e.preventDefault();
+    const form = $(this);
+    const postId = form.data("post-id");
+
+    $.ajax({
+      type: "POST",
+      url: `/post/${postId}/like/`,
+      data: form.serialize(),
+      success: function (response) {
+        form.find(".likes-count").text(`${response.likes_count} Likes`);
+      }
+    });
+  });
+
+  $(document).on("submit", ".comment-form", function (e) {
+    e.preventDefault();
+    const form = $(this);
+    const postId = form.data("post-id");
+    const commentBox = form.find("input[name='comment']");
+
+    $.ajax({
+      type: "POST",
+      url: `/post/${postId}/comment/`,
+      data: form.serialize(),
+      success: function (response) {
+        $(`#comments-${postId}`).html(response.comments_html);
+        commentBox.val("");
+      }
+    });
+  });
+
+
+  $(document).on("click", ".follow-btn", function () {
+    const button = $(this);
+    const userId = button.data("user-id");
+
+    $.ajax({
+      type: "POST",
+      url: "/follow/",
+      headers: { "X-CSRFToken": "{{ csrf_token }}" },
+      data: JSON.stringify({ user_id: userId }),
+      contentType: "application/json",
+      success: function (response) {
+        if (response.status === "followed") {
+          button.text("Following").prop("disabled", true).removeClass("btn-primary").addClass("btn-success");
+        }
+      }
+    });
+  });
+</script>
+{% endblock %}

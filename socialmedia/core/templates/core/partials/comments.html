@@ -1,0 +1,5 @@
+{% for comment in post.comments.all %}
+  <strong>{{ comment.user.username }}</strong>: {{ comment.text }}<br>
+{% empty %}
+  <p class="text-muted">No comments yet.</p>
+{% endfor %}

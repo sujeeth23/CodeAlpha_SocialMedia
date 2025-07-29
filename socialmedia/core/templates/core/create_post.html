@@ -1,0 +1,10 @@
+{% extends 'core/base.html' %}
+{% block title %}Create Post{% endblock %}
+{% block content %}
+<h2>Create New Post</h2>
+<form method="post" enctype="multipart/form-data">{% csrf_token %}
+    <div class="mb-3"><label>Image</label><input type="file" name="image" class="form-control"></div>
+    <div class="mb-3"><label>Caption</label><textarea name="caption" class="form-control"></textarea></div>
+    <button class="btn btn-primary">Post</button>
+</form>
+{% endblock %}

@@ -1,0 +1,28 @@
+<div class="card mb-4 mx-auto" style="max-width: 550px;">
+  <img src="{{ post.image.url }}" class="card-img-top img-fluid rounded" style="max-height: 400px; object-fit: cover;">
+
+  <div class="card-body">
+    <h5 class="card-title"><a href="{% url 'profile' post.user.username %}" class="text-decoration-none text-dark">
+      @{{ post.user.username }}
+    </a></h5>
+    <p class="card-text">{{ post.caption }}</p>
+
+    <form class="like-form" data-post-id="{{ post.id }}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-outline-danger like-btn">❤️</button>
+      <span class="likes-count">{{ post.likes.count }} Likes</span>
+    </form>
+
+    
+
+    <form class="comment-form mt-3" data-post-id="{{ post.id }}">
+      {% csrf_token %}
+      <input type="text" name="comment" placeholder="Add a comment" class="form-control mb-2">
+      <button type="submit" class="btn btn-secondary">Comment</button>
+    </form>
+
+    <div id="comments-{{ post.id }}">
+      {% include 'core/partials/comments.html' with post=post %}
+    </div>
+  </div>
+</div>
